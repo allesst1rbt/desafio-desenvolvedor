@@ -1,0 +1,33 @@
+version: '2'
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini        
+  mysql:
+      image: mysql:5.7
+      command: mysqld --sql_mode=""
+      volumes:
+        - ./lumen:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: lumen
+        MYSQL_USER: root
+        MYSQL_PASSWORD: root        
+      ports:
+          - 3399:3306             
+  web:
+    build:
+      context: ./
+      dockerfile: web.dockerfile
+    working_dir: /var/www
+    volumes_from:
+      - app
+    links:
+      - mysql
+    ports:
+      - 8099:80
