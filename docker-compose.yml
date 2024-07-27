@@ -1,5 +1,5 @@
-version: '2'
 services:
+  # The Application
   app:
     build:
       context: ./
@@ -7,27 +7,41 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
-      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini        
-  mysql:
-      image: mysql:5.7
-      command: mysqld --sql_mode=""
-      volumes:
-        - ./lumen:/var/lib/mysql
-      environment:
-        MYSQL_ROOT_PASSWORD: root
-        MYSQL_DATABASE: lumen
-        MYSQL_USER: root
-        MYSQL_PASSWORD: root        
-      ports:
-          - 3399:3306             
+    depends_on:
+      database:
+        condition: service_healthy
+  # The Database
+  database:
+    image: mysql:5.7
+    platform: linux/amd64
+
+    command: mysqld --sql_mode=""
+    volumes:
+      - ./laravel:/var/lib/mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=laravel"
+      - "MYSQL_DATABASE=laravel"
+      - "MYSQL_USER=laravel"
+    ports:
+      - "3399:3306"
+    healthcheck:
+      test: '/usr/bin/mysql --user=root --password=laravel --execute "SHOW DATABASES;"'
+      interval: 2s
+      timeout: 20s
+      retries: 10
+    # The Web Server
   web:
+    platform: linux/amd64
     build:
       context: ./
       dockerfile: web.dockerfile
-    working_dir: /var/www
+    working_dir: /var/www/
     volumes_from:
       - app
     links:
-      - mysql
+      - database
+      - app
     ports:
-      - 8099:80
+      - 8080:80
+    depends_on:
+      - app

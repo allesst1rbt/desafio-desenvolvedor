@@ -1,3 +1,3 @@
-FROM nginx:1.20
+FROM nginx:1.10
 
 ADD nginx.conf /etc/nginx/conf.d/default.conf
