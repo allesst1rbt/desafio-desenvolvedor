@@ -1,5 +1,5 @@
 #!/bin/sh
-cd /var/www/back
+cd /var/www/
 cp .env.example .env
 chmod -R 777 storage
 composer install
